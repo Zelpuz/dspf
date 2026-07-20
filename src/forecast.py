@@ -1,8 +1,11 @@
 import polars as pl
 import holidays
-from statsforecast.models import AutoARIMA
+import warnings
+from statsforecast.models import AutoARIMA, AutoETS
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 
 def make_forecast(
@@ -18,7 +21,8 @@ def make_forecast(
     final_day = data.select(pl.col("ds").tail(1)).item()
     nyse_holidays = list(
         holidays.financial_holidays(
-            "NYSE", years=[(final_day).year for x in range(-1, 5)]
+            "NYSE",
+            years=[(final_day - relativedelta(years=x)).year for x in range(-1, 5)],
         ).keys()
     )
     next_15_trading_days = (
@@ -40,16 +44,12 @@ def make_forecast(
         pl.lit("^GSPC").alias("unique_id")
     )
 
-    # vstack the forecast to the input data
-    data = data.with_columns(pl.lit("historic").alias("type")).select(
-        "ds", "y", "unique_id", "type"
-    )
+    # Format the output dataframe
     forecast = forecast.with_columns(pl.lit("forecast").alias("type")).select(
         "ds", "y", "unique_id", "type"
     )
-    data = data.vstack(forecast)
 
-    return data
+    return forecast
 
 
 def forecast_from_today(
@@ -58,4 +58,45 @@ def forecast_from_today(
     today = datetime.today()
     data = data.filter((pl.col("ds") > (today - relativedelta(years=5))))
     forecast = make_forecast(data=data, horizon=horizon, season_length=season_length)
+    data.with_columns(pl.lit("historic").alias("type")).select(
+        "ds", "y", "unique_id", "type"
+    )
+    forecast = data.vstack(forecast)
     return forecast
+
+
+def _make_historic_forecast(
+    start_date, data: pl.DataFrame, horizon, season_length
+) -> pl.DataFrame:
+    forecast = make_forecast(
+        data.filter(pl.col("ds") >= start_date),
+        horizon=horizon,
+        season_length=season_length,
+    )
+    forecast = forecast.with_columns(pl.lit(start_date).alias("vintage"))
+    return forecast  # all_forecasts = all_forecasts.vstack(forecast)
+
+
+def historic_forecasts(
+    args, data: pl.DataFrame, horizon: int, season_length: int = 5
+) -> pl.DataFrame:
+    today = datetime.today()
+    start_dates = (
+        data.filter(pl.col("ds") > (today - relativedelta(years=5)))
+        .select("ds")
+        .to_series()
+    )
+    if args.progress_bar:
+        iterator = tqdm(iter(start_dates), total=len(start_dates))
+    else:
+        iterator = iter(start_dates)
+
+    with warnings.catch_warnings(action="ignore"):
+        forecast_dfs = Parallel(n_jobs=-1)(
+            delayed(_make_historic_forecast)(
+                start_date, data=data, horizon=horizon, season_length=season_length
+            )
+            for start_date in iterator
+        )
+
+    return pl.concat(forecast_dfs, how="vertical")
