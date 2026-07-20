@@ -16,3 +16,25 @@ Despite not needing saved forecasts for evaluation, DSPF exports historic and cu
 
 This app uses Python. Key third-party packages include `polars` and `statsforecast`. Trading holidays are tracked with `holidays`.
 
+## Usage
+
+Clone or download and unpackage the repo. I recommend using the [uv](https://docs.astral.sh/uv/) package manager. Then run DSPF from the terminal:
+
+```bash
+$ cd <path-to-cloned-repo>
+$ uv sync
+$ uv run src/main.py
+```
+
+Output is by default sent to `STDOUT`. Save results by sending `STDOUT` to a file. For bash and similar:
+
+```bash
+$ uv run src/main.py > output.csv
+```
+
+For Windows PowerShell:
+
+```PowerShell
+$ uv run src/main.py | Out-File --FilePath .\output.csv
+```
+

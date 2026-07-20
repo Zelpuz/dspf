@@ -15,17 +15,17 @@ def make_forecast(
     forecast = pl.DataFrame({"y": forecast["mean"]})
 
     # Add trading day-aware dates to the forecast
-    today = datetime.today()
+    final_day = data.select(pl.col("ds").tail(1)).item()
     nyse_holidays = list(
         holidays.financial_holidays(
-            "NYSE", years=[(today - relativedelta(years=x)).year for x in range(-1, 5)]
+            "NYSE", years=[(final_day).year for x in range(-1, 5)]
         ).keys()
     )
     next_15_trading_days = (
         pl.DataFrame(
             pl.date_range(
-                start=today,
-                end=today + relativedelta(days=30),
+                start=final_day,
+                end=final_day + relativedelta(days=30),
                 interval="1d",
                 closed="right",
                 eager=True,
@@ -50,3 +50,10 @@ def make_forecast(
     data = data.vstack(forecast)
 
     return data
+
+
+def forecast_from_today(data: pl.DataFrame, horizon: int, season_length: int = 5) -> pl.DataFrame:
+    today = datetime.today()
+    data = data.filter((pl.col("ds") > (today - relativedelta(years=5))))
+    forecast = make_forecast(data=data, horizon=horizon, season_length=season_length)
+    return forecast
