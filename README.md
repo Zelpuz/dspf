@@ -14,5 +14,5 @@ Despite not needing saved forecasts for evaluation, DSPF exports historic and cu
 
 ## Code
 
-This app uses Python. Key third-party packages include `polars`, `statsmodels`, and `numpy`. Trading holidays are tracked with `holidays`.
+This app uses Python. Key third-party packages include `polars` and `statsforecast`. Trading holidays are tracked with `holidays`.
 
