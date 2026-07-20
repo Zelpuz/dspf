@@ -38,7 +38,7 @@ def make_forecast(
         .filter(
             pl.col("ds").is_in(nyse_holidays).not_() & pl.col("ds").dt.is_business_day()
         )
-        .select(pl.col("ds").head(15))
+        .select(pl.col("ds").head(horizon))
     )
     forecast = forecast.with_columns(next_15_trading_days.select("ds")).with_columns(
         pl.lit("^GSPC").alias("unique_id")
@@ -58,7 +58,7 @@ def forecast_from_today(
     today = datetime.today()
     data = data.filter((pl.col("ds") > (today - relativedelta(years=5))))
     forecast = make_forecast(data=data, horizon=horizon, season_length=season_length)
-    data.with_columns(pl.lit("historic").alias("type")).select(
+    data = data.with_columns(pl.lit("historic").alias("type")).select(
         "ds", "y", "unique_id", "type"
     )
     forecast = data.vstack(forecast)
@@ -69,7 +69,7 @@ def _make_historic_forecast(
     start_date, data: pl.DataFrame, horizon, season_length
 ) -> pl.DataFrame:
     forecast = make_forecast(
-        data.filter(pl.col("ds") >= start_date),
+        data.filter(pl.col("ds") <= start_date),
         horizon=horizon,
         season_length=season_length,
     )
