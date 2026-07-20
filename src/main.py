@@ -15,7 +15,6 @@ def main(args):
         forecast = forecast_from_today(data=data, horizon=15)
 
     path = Path(os.getcwd())
-    (path / "dspf_output").mkdir(parents=True, exist_ok=True)
     sys.stdout.write(forecast.write_csv())
 
 
