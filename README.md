@@ -8,9 +8,7 @@ DSPF also reports metrics for historic forecasts. Users can see both current for
 
 Forecasts are generated using an AutoARIMA procedure. Non-trading days are removed and trading days are treated as adjacent time steps.
 
-As the AutoARIMA procedure is effectively deterministic, that is, you get the same result upon rerunning with the same data, we do not need to store forecasts for future evaluation. Instead, the app generates historic forecasts each time it is run and uses those to assess historic accuracy. These historic forecasts do not _peek_; only data up to and including a trading day is used to predict subsequent trading days' closing prices.
-
-Despite not needing saved forecasts for evaluation, DSPF exports historic and current forecasts as a CSV for users' convenience.
+As the AutoARIMA procedure is effectively deterministic, that is, you get the same result upon rerunning with the same data, we do not need to store forecasts for future evaluation. Instead, the app can generate historic forecasts at runtime. These historic forecasts do not _peek_; only data up to and including a trading day is used to predict subsequent trading days' closing prices.
 
 ## Code
 
