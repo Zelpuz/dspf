@@ -1,6 +1,5 @@
 import polars as pl
 import yfinance as yf
-from pathlib import Path
 
 
 def download() -> pl.DataFrame:

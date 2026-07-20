@@ -1,4 +1,5 @@
-import argparse, os, sys
+import os
+import sys
 from pathlib import Path
 from data_pipe import download
 from forecast import forecast_from_today
@@ -10,7 +11,7 @@ def main():
 
     path = Path(os.getcwd())
     (path / "dspf_output").mkdir(parents=True, exist_ok=True)
-    sys.stdout.write(data.write_csv())
+    sys.stdout.write(forecast.write_csv())
 
 
 if __name__ == "__main__":

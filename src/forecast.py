@@ -52,7 +52,9 @@ def make_forecast(
     return data
 
 
-def forecast_from_today(data: pl.DataFrame, horizon: int, season_length: int = 5) -> pl.DataFrame:
+def forecast_from_today(
+    data: pl.DataFrame, horizon: int, season_length: int = 5
+) -> pl.DataFrame:
     today = datetime.today()
     data = data.filter((pl.col("ds") > (today - relativedelta(years=5))))
     forecast = make_forecast(data=data, horizon=horizon, season_length=season_length)
