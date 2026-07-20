@@ -1,7 +1,7 @@
 import polars as pl
 import holidays
 import warnings
-from statsforecast.models import AutoARIMA, AutoETS
+from statsforecast.models import AutoARIMA
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from joblib import Parallel, delayed
