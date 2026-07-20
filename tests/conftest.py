@@ -6,7 +6,9 @@ import pytest
 
 
 def _business_days(start: date, n: int) -> pl.Series:
-    days = pl.date_range(start, start + timedelta(days=int(n * 1.6) + 10), interval="1d", eager=True)
+    days = pl.date_range(
+        start, start + timedelta(days=int(n * 1.6) + 10), interval="1d", eager=True
+    )
     days = days.filter(days.dt.weekday() < 6)
     return days.head(n)
 
@@ -22,8 +24,3 @@ def price_data_factory():
         return pl.DataFrame({"ds": ds, "y": y, "unique_id": [unique_id] * n})
 
     return _make
-
-
-@pytest.fixture
-def price_data(price_data_factory):
-    return price_data_factory()

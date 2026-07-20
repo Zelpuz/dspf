@@ -4,36 +4,39 @@ import polars as pl
 import data_pipe
 
 
-class FakeTicker:
-    """Stands in for yfinance's Ticker so tests don't hit the network."""
+def _install_fake_ticker(monkeypatch, history_df):
+    """Stands in for yfinance's Ticker so tests don't hit the network.
 
-    last_symbol = None
-    last_period = None
-    history_df = None
+    Returns the list of (symbol, period) pairs `.history()` was called with.
+    """
+    calls = []
 
-    def __init__(self, symbol):
-        FakeTicker.last_symbol = symbol
+    class FakeTicker:
+        def __init__(self, symbol):
+            self.symbol = symbol
 
-    def history(self, period):
-        FakeTicker.last_period = period
-        return FakeTicker.history_df
+        def history(self, period):
+            calls.append((self.symbol, period))
+            return history_df
+
+    monkeypatch.setattr(data_pipe.yf, "Ticker", FakeTicker)
+    return calls
 
 
 def test_download_requests_the_right_symbol_and_period(monkeypatch):
     idx = pd.date_range("2024-01-01", periods=3, freq="D", name="Date")
-    FakeTicker.history_df = pd.DataFrame({"Close": [1.0, 2.0, 3.0]}, index=idx)
-    monkeypatch.setattr(data_pipe.yf, "Ticker", FakeTicker)
+    history_df = pd.DataFrame({"Close": [1.0, 2.0, 3.0]}, index=idx)
+    calls = _install_fake_ticker(monkeypatch, history_df)
 
     data_pipe.download()
 
-    assert FakeTicker.last_symbol == "^GSPC"
-    assert FakeTicker.last_period == "10y"
+    assert calls == [("^GSPC", "10y")]
 
 
 def test_download_shapes_output_dataframe(monkeypatch):
     idx = pd.date_range("2024-01-01", periods=5, freq="D", name="Date")
     # Real yfinance history() returns extra columns; download() should drop them.
-    FakeTicker.history_df = pd.DataFrame(
+    history_df = pd.DataFrame(
         {
             "Open": [0.0] * 5,
             "Close": [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -41,7 +44,7 @@ def test_download_shapes_output_dataframe(monkeypatch):
         },
         index=idx,
     )
-    monkeypatch.setattr(data_pipe.yf, "Ticker", FakeTicker)
+    _install_fake_ticker(monkeypatch, history_df)
 
     result = data_pipe.download()
 

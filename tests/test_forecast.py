@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import polars as pl
 import pytest
 
@@ -8,11 +10,6 @@ from forecast import (
     historic_forecasts,
     make_forecast,
 )
-
-
-class Args:
-    def __init__(self, progress_bar=False):
-        self.progress_bar = progress_bar
 
 
 # --- make_forecast ---------------------------------------------------------
@@ -77,7 +74,9 @@ def test_make_historic_forecast_ignores_data_after_start_date(price_data_factory
         .alias("y")
     )
 
-    baseline = _make_historic_forecast(start_date, data=data, horizon=3, season_length=5)
+    baseline = _make_historic_forecast(
+        start_date, data=data, horizon=3, season_length=5
+    )
     tampered_result = _make_historic_forecast(
         start_date, data=tampered, horizon=3, season_length=5
     )
@@ -116,10 +115,15 @@ def test_historic_forecasts_calls_once_per_vintage_and_concatenates(
             }
         )
 
-    monkeypatch.setattr(forecast_mod, "_make_historic_forecast", fake_make_historic_forecast)
+    monkeypatch.setattr(
+        forecast_mod, "_make_historic_forecast", fake_make_historic_forecast
+    )
 
     result = historic_forecasts(
-        args=Args(progress_bar=progress_bar), data=data, horizon=2, season_length=5
+        args=SimpleNamespace(progress_bar=progress_bar),
+        data=data,
+        horizon=2,
+        season_length=5,
     )
 
     assert sorted(result["vintage"].to_list()) == sorted(data["ds"].to_list())
