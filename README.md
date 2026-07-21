@@ -2,7 +2,7 @@
 
 This app, DSPF, generates a forecast of daily closing prices for the S&P500 as listed on the NYSE. Upon execution DSPF downloads the last five years' daily closing prices and then forecasts closing prices for the next 15 trading days, or approximately three weeks.
 
-DSPF also reports metrics for historic forecasts. Users can see both current forecasts and assess past forecast strength.
+DSPF optionally calculates daily historic forecasts. Users can thus see both current forecasts and assess past forecast strength.
 
 ## Methodology
 

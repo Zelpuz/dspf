@@ -5,9 +5,7 @@ import polars as pl
 import main as main_mod
 
 
-def test_main_forecast_from_today_writes_csv_and_creates_output_dir(
-    monkeypatch, tmp_path, capsys
-):
+def test_main_forecast_from_today_writes_csv(monkeypatch, tmp_path, capsys):
     fake_data = pl.DataFrame({"ds": [], "y": [], "unique_id": []})
     fake_forecast = pl.DataFrame(
         {"ds": ["2024-01-01"], "y": [1.0], "unique_id": ["^GSPC"], "type": ["forecast"]}
@@ -21,7 +19,6 @@ def test_main_forecast_from_today_writes_csv_and_creates_output_dir(
 
     main_mod.main(SimpleNamespace(historic=False, progress_bar=False))
 
-    assert (tmp_path / "dspf_output").is_dir()
     assert capsys.readouterr().out == fake_forecast.write_csv()
 
 

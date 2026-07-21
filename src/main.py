@@ -1,7 +1,5 @@
-import os
 import sys
 import argparse
-from pathlib import Path
 from data_pipe import download
 from forecast import forecast_from_today, historic_forecasts
 
@@ -14,7 +12,6 @@ def main(args):
     else:
         forecast = forecast_from_today(data=data, horizon=15)
 
-    path = Path(os.getcwd())
     sys.stdout.write(forecast.write_csv())
 
 
