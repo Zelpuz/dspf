@@ -36,3 +36,4 @@ For Windows PowerShell:
 $ uv run src/main.py | Out-File --FilePath .\output.csv
 ```
 
+The repo also has a makefile for users on linux systems who prefer that approach.
